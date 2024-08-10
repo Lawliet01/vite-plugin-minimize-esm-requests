@@ -1,15 +1,23 @@
 {
-  "name": "vite-quick-reload",
+  "name": "vite-plugin-minimize-esm-requests",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "rollup -c -w",
+    "build": "rollup -c"
   },
   "devDependencies": {
+    "@rollup/plugin-swc": "^0.3.1",
+    "@types/node": "^20.14.11",
+    "rollup-plugin-string": "^3.0.0",
+    "tslib": "^2.6.1",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "rollup": "^4.18.0",
+    "threads": "^1.7.0",
+    "picocolors": "^1.0.1"
   }
 }
