@@ -14,7 +14,7 @@ The outcome of this approach is that the number of ES module requests will no lo
 
 In my personal scenario, reloading the app in my company requires 5000 es module requests, taking approximately 10 seconds. However, after implementing the plugin, the reload time has been reduced to just 1 to 2 seconds.
 
-## install
+## Install
 
 ```shell
 npm add -D vite-plugin-minimize-esm-requests
