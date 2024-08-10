@@ -1,4 +1,6 @@
-/*!
+/* eslint-disable unicorn/no-abusive-eslint-disable */
+/* eslint-disable */
+/*
  * SystemJS 6.15.1
  * https://github.com/systemjs/systemjs
  */

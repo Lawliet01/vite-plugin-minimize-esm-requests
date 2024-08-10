@@ -1,8 +1,10 @@
 {
   "name": "vite-plugin-minimize-esm-requests",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.0.4",
   "type": "module",
+  "exports": "./dist/index.js",
+  "files": ["dist"],
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c"
