@@ -2,10 +2,10 @@
 
 ## WHY
 
-I created this plugin to elevate the development experience of a monolithic application in my company, which uses Vite. If your application satisfies the following three conditions, this plugin could be a great fit:
+I created this plugin to elevate the development experience for a monolithic application in my company, which uses Vite. If your application satisfies the following three conditions, this plugin could be a great fit:
 
 1. Use Vite to develop;
-2. More than 2000 es module requests of source code on every page reload;
+2. More than 2000 es module requests for source code on every page reload.
 3. The [Hot Module Replacement (HMR)](https://vitejs.dev/guide/api-hmr.html#hot-accept-cb) boundary often cannot be set accurately, leading to a full page reload whenever most files are modified.
 
 The underlying principle of this plugin is simple: It uses SystemJs as a mediator to concatenate all the ES modules into **ONE single file** (note it's a concatenation, not a bundle). This file will be cached in browser. We only need to requests modified files on subsequent page reload.

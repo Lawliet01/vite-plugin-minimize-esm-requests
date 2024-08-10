@@ -11,7 +11,6 @@ import SystemJsCode from './client/systemjs.js';
 import { genCachedCode, genSourceMap } from './gen-code.ts';
 import { log, logError, logGenModules } from './log.ts';
 
-// 请求代码的路径
 const CACHED_MODULE_URL = '/virtual:cachedSystemJsModule';
 const CACHED_MODULE_SOURCE_MAP_URL = '/virtual:cachedModuleSourceMap';
 
@@ -28,12 +27,10 @@ const getReadyCodeModules = (moduleGraph: ViteDevServer['moduleGraph']) =>
 export default function MinimizeEsmRequests(): VitePlugin {
     let _server: ViteDevServer;
 
-    // 要求的缓存版本
     let requiredCachedVersion = Date.now();
-    // 不合法的 URL 集合
+    // The URLs of all modified modules will be stored here.
     const invalidatedURL = new Set<string>();
 
-    // 更新缓存
     const updateCached = () => {
         requiredCachedVersion = Date.now();
         invalidatedURL.clear();
@@ -43,7 +40,7 @@ export default function MinimizeEsmRequests(): VitePlugin {
     let currentCodeCachedVersion = -1;
     let getCurrentSourceMapPromise = Promise.resolve('');
 
-    // worker pool，用于首次加载时多线程转化 systemJs
+    // Use multithreading to transform ES Modules into SystemJS Modules.
     const workerPath = path.relative(process.cwd(), './rollup-worker.js');
     const transformPool = Pool(() => spawn(new Worker(workerPath)));
 
@@ -55,19 +52,19 @@ export default function MinimizeEsmRequests(): VitePlugin {
             _server = server;
 
             _server.middlewares.use((req, res, next) => {
-                // code systemjs version modules
                 if (req.originalUrl?.includes(CACHED_MODULE_URL)) {
                     const _start = performance.now();
 
                     const readyModules = getReadyCodeModules(_server.moduleGraph);
 
-                    // 看看是否需要更新缓存
                     if (currentCodeCachedVersion !== requiredCachedVersion) {
+                        // generate code
                         let code = genCachedCode(readyModules);
-                        // sourceMap 地址
+                        // sourcemap url
                         code += `//# sourceMappingURL=${CACHED_MODULE_SOURCE_MAP_URL}?v=${requiredCachedVersion}`;
                         currentCode = code;
                         currentCodeCachedVersion = requiredCachedVersion;
+                        // generate sourcemap
                         getCurrentSourceMapPromise = genSourceMap(code, _server.moduleGraph);
 
                         logGenModules(readyModules.length, performance.now() - _start);
@@ -78,7 +75,7 @@ export default function MinimizeEsmRequests(): VitePlugin {
                     return;
                 }
 
-                // code systemjs module sourcemap
+                // systemjs modules sourcemap
                 if (req.originalUrl?.includes(CACHED_MODULE_SOURCE_MAP_URL)) {
                     return getCurrentSourceMapPromise.then((sourceMap) => {
                         res.setHeader('Cache-Control', 'max-age=3600,immutable');
@@ -89,7 +86,7 @@ export default function MinimizeEsmRequests(): VitePlugin {
                 next();
             });
 
-            // 监听前端通知的更新
+            // Listen for updates from the client notifications
             _server.ws.on('MinimizeESMRequests:UpdateModules', () => {
                 log('The next reload will update the cache.');
                 updateCached();
@@ -124,18 +121,17 @@ export default function MinimizeEsmRequests(): VitePlugin {
             };
         },
 
-        // 对于修改的文件，让其失效
+        // For modified files, marks them as invalid.
         handleHotUpdate({ modules }) {
             const invalidUrls = modules.map((module) => module.url);
 
-            // 记录失效的模块
             invalidUrls.forEach((url) => invalidatedURL.add(url));
 
-            // 通知 client 改动的模块
+            // notify client to invalidate the modules during HMR
             _server.ws.send('MinimizeESMRequests:invalidateModule', invalidUrls);
         },
 
-        // 转化 es6 modules -> systemJs modules
+        // transform es6 modules -> systemJs modules
         transform: {
             order: 'post',
             handler: async function (code, id) {

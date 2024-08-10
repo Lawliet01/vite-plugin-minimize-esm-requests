@@ -24,7 +24,8 @@ const isCodeFlag = (lineCodes: string) => lineCodes.startsWith(CODE_INTERVAL_FLA
 
 const getModuleTransformResult = (module: ModuleNode): TransformResult | null => {
     return (
-        // @ts-expect-error FIX: invalidationState 被 moduleNode 标记为@internal，但是有一些 304 的模块会存到 invalidationState 内
+        // Sometimes, for some 304 modules, the transformation result will be stored into ModuleNode['invalidationState']
+        // @ts-expect-error The invalidationState is marked as @internal by the ModuleNode interface in Vite. 
         module.transformResult || (module.invalidationState?.code ? module.invalidationState : null)
     );
 };
@@ -37,7 +38,7 @@ export function genCachedCode(modules: ModuleNode[]) {
         const transformResult = getModuleTransformResult(module);
         if (!module.id || !transformResult?.code) continue;
 
-        // codeFlag 用于标记新的代码块，方便后续生成 sourcemap
+        // insert a flag before each module block, making it easier to generate sourcemap afterwards.
         code += insertCodeFlag(module.id);
         code += `["${module.url}", { code: () => { return ${transformResult.code} }}],`;
     }
@@ -57,7 +58,7 @@ export async function genSourceMap(code: string, moduleGraph: ModuleGraph): Prom
             sections: [],
         };
 
-        // 创建一个流以将字符串输入到 readline 接口
+        // Create a stream to input strings into the readline interface.
         const bufferStream = new stream.PassThrough();
         bufferStream.end(Buffer.from(code));
 

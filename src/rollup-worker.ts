@@ -1,7 +1,7 @@
 import { rollup } from 'rollup';
 import { expose } from 'threads/worker';
 
-// 让后续转换可以直接在内存读取 js 文件
+// make it convenient to inject code into the transformer.
 const _handleVirtualJsFile = (sourceCode: string) => {
     return {
         name: 'handle-js-transfer',
@@ -14,7 +14,7 @@ const _handleVirtualJsFile = (sourceCode: string) => {
     };
 };
 
-// rollup 转化
+// rollup transform: es modules -> systemJs modules
 const rollupTransform = async function (code: string, id: string, name: string) {
     try {
         const bundle = await rollup({
